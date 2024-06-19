@@ -10,26 +10,40 @@ const linearSearch = require("../utils/linearsearch");
 
 // Obtener todos los libros ordenados por un campo especificado
 router.get("/libros", authMiddleware, async (req, res) => {
-  const { sortField = "titulo", algorithm = "quick" } = req.query;
+  const {
+    sortField = "titulo",
+    algorithm = "quick",
+    keysearch,
+    search,
+  } = req.query;
 
   try {
     let libros = await LibroModel.find();
+    let resultados;
+
+    if (keysearch && search) {
+      // aplicando busqueda lineal
+      const libro = linearSearch(libros, keysearch, search);
+      resultados = libro ? [libro] : [];
+    } else {
+      resultados = libros;
+    }
 
     switch (algorithm) {
       case "quick":
-        libros = quickSort(libros, sortField);
+        resultados = quickSort(resultados, sortField);
         break;
       case "bubble":
-        libros = bubbleSort(libros, sortField);
+        resultados = bubbleSort(resultados, sortField);
         break;
       case "merge":
-        libros = mergeSort(libros, sortField);
+        resultados = mergeSort(resultados, sortField);
         break;
       default:
-        libros = quickSort(libros, sortField);
+        resultados = quickSort(resultados, sortField);
     }
 
-    res.json(libros);
+    res.json(resultados);
   } catch (error) {
     res.status(500).json({ mensaje: error.message });
   }
